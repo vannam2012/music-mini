@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nam</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music player</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link rel="stylesheet" href="./assets/fonts/fontawesome-free-6.2.0-web/fontawesome-free-6.2.0-web/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  
+  <div class="player">
+    <!-- Dashboard -->
+    <div class="dashboard">
+      <!-- Header -->
+      <header>
+        <h4>Now playing:</h4>
+        <h2>String 57th & 9th</h2>
+      </header>
+  
+      <!-- CD -->
+      <div class="cd">
+        <div  class="cd-thumb" style="background-image: url('https://d1hjkbq40fs2x4.cloudfront.net/2017-08-21/files/landscape-photography_1645-t.jpg');">
+          
+        </div>
+      </div>
+  
+      <!-- Control -->
+      <div class="control">
+        <div class="btn btn-repeat">
+          <i class="fas fa-redo"></i>
+        </div>
+        <div class="btn btn-prev">
+          <i class="fas fa-step-backward"></i>
+        </div>
+        <div class="btn btn-toggle-play">
+          <i class="fas fa-pause icon-pause"></i>
+          <i class="fas fa-play icon-play"></i>
+        </div>
+        <div class="btn btn-next">
+          <i class="fas fa-step-forward"></i>
+        </div>
+        <div class="btn btn-random">
+          <i class="fas fa-random"></i>
+        </div>
+      </div>
+  
+      <input id="progress" class="progress" type="range" value="0" step="1" min="0" max="100">
+  
+      <audio id="audio" src=""></audio>
+    </div>
+  
+    <!-- Playlist -->
+    <div class="playlist">
+      <!-- <div class="song">
+         <div class="thumb" style="background-image: url('https://d1hjkbq40fs2x4.cloudfront.net/2017-08-21/files/landscape-photography_1645-t.jpg');">
+          
+        </div> 
+        <div class="body">
+          <h3 class="title"></h3>
+          <p class="author"></p>
+        </div>
+          <div class="option">
+            <i class="fa-solid fa-ellipsis"></i>
+          </div>
+        </div>
+      </div> -->
+      <!--   // trong đây innerHtml ra playlist , đầu tiên get ra playlist-->
+    </div>
+  </div>
+  
+  <!-- Design from: https://static.collectui.com/shots/3671744/musicloud-revolutionary-app-for-music-streaming-large -->
+
+    
+  <script>
+    const $ = document.querySelector.bind(document)
+    const $$ = document.querySelectorAll.bind(document)
+
+    // để lưu những hành động mk làm trong quá trinhf truy cập
+    const PLAYER_STORAGE_KEY = 'MUSIC_PLAYER' // lấy ra thì parse về array/ object
+
+    const playlist = $('.playlist')
+    const cd = $('.cd')
+    const heading = $('header h2')
+    const cdThumb = $('.cd-thumb')
+    const audio = $('#audio')
+    const nextBtn = $('.btn-next')
+    const prevBtn = $('.btn-prev')   
+    const randomBtn = $('.btn-random') 
+    const repeatBtn = $('.btn-repeat')
+    
+    
+    const app = {
+      currentIndex: 0,
+      isPlaying: false, // thêm property mặc định nó là false, khi làm nút pause. ấn thêm cái nữa là dừng
+      config: JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)) || {},
+      isRandom: false,
+      isRepeat: false,
+      songs: [
+        
+      {    
+        name: "Người Âm Phủ",
+        singer: "OSAD x VRT",
+        path: './assets/music/music1.mp3',
+        image: './assets/img/anh1.jpg'
+      },
+      {    
+        name: "Tay to",
+        singer: "RPT MCK x PRT PhongKhin",
+        path: './assets/music/music2.mp3',
+        image: './assets/img/anh2.jpg'
+
+      },
+      {    
+        name: "Xich thêm chút",
+        singer: "RPT Groovie ft TLinh x RPT MCK",
+        path: './assets/music/music3.mp3',
+        image: './assets/img/anh3.jpg'
+
+      },
+      {    
+        name: "Tell Or Mom",
+        singer: "Winno X Heily",
+        path: './assets/music/music4.mp3',
+        image: './assets/img/anh4.jpg'
+
+      },
+      {    
+        name: "Đếm ngày xa em",
+        singer: "Only C ft. Lou Hoàng",
+        path: './assets/music/music5.mp3',
+        image: './assets/img/anh5.jpg'
+      },
+      {    
+        name: "Gía như anh lặng im ",
+        singer: "OnlyC ft. Lou Hoàng ft. Quang Hùng",
+        path: './assets/music/music6.mp3',
+        image: './assets/img/anh6.jpg'
+      },
+      {    
+        name: "Anh đánh rơi người yêu này",
+        singer: "Andiez ft. AMEE ",
+        path: './assets/music/music7.mp3',
+        image: './assets/img/anh7.jpg'
+      },
+      {    
+        name: "Tình yêu màu nắng",
+        singer: "Đoàn Thúy Trang ft. Big Daddy",
+        path: './assets/music/music8.mp3',
+        image: './assets/img/anh8.jpg'
+      },
+
+    ],
+     setConfig: function(key, value){
+        this.config[key] = value;
+        localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(_this.config)) 
+        //  JSON.stringify(this.config)) // storage chỉ lủu chuỗi, lưu vào mã hoá sang chuõi
+
+      },
+      render: function(){
+        const htmls = this.songs.map((song, index) => {
+          return `
+          <div class="song ${index === this.currentIndex ? 'active' : ''}" data-index="${index}">
+         <div class="thumb" style="background-image: url('${song.image}');">
+          
+        </div> 
+        <div class="body">
+          <h3 class="title">${song.name}</h3>
+          <p class="author">${song.singer}</p>
+        </div>
+          <div class="option">
+            <i class="fa-solid fa-ellipsis"></i>
+          </div>
+        </div>
+        </div>
+          `
+        })
+        playlist.innerHTML  = htmls.join('')
+      },
+
+      handleEvents: function(){
+        // xử lí CD
+        cdThumbAnimate = cdThumb.animate([ 
+          { transform: 'rotate(360deg)'}
+        ], {  
+        duration: 10000,
+        interations: Infinity
+        })
+
+        cdThumbAnimate.pause()
+          
+
+       const _this = this 
+        document.onscroll = function(){      
+          const scrollTop = window.screenY || document.documentElement.scrollTop       
+          const newCdWidth = cdWidth - scrollTop       
+          cd.style.width = newCdWidth > 0 ? newCdWidth + 'px' : 0   
+          cd.style.opacity = newCdWidth/cdWidth
+          
+        }
+        // xử lí khi click vào play
+        const playBtn = $('.btn-toggle-play') 
+          // lấy player để biến nút play thành nút pause
+        const player = $('.player')
+        playBtn.onclick = function(){
+          // nếu đang playing thì pause ngược lại, nếu đang pause thì ta playing
+          if (_this.isPlaying){
+           // pause lên = false
+            audio.pause() 
+          }else{           
+            audio.play()
+          }
+
+        }
+        // khi song đc play
+        audio.onplay = function(){
+          _this.isPlaying = true 
+          player.classList.add('playing')
+          // khi đĩa đang chạy trên kia bị pause lại rồi, thì khi ấn vào nút play thì cho nó chạy
+          cdThumbAnimate.play()
+        }
+        // khi song bị pause
+        audio.onpause = function(){
+            _this.isPlaying = false 
+            player.classList.remove('playing')
+            // khi ấn pause thì animate cuũng phải pause
+            cdThumbAnimate.pause()
+        }
+        // khi add playing thì thanh progress pahir chạy cùng theo bài hát
+        audio.ontimeupdate = function(){
+          const progress = $('#progress')        
+          if (audio.duration){
+              const progressPercent = Math.floor(audio.currentTime/audio.duration * 100)// đây là làm tròn dưới cái số giấy phần trăm trong range         
+              progress.value = progressPercent // thêm giá trị từ 0 , tự tăng lên giá trị % cho phù hợp với progresssPercent
+            
+            }
+  
+        }      
+        //xử lí tua
+        progress.oninput =function(e){
+          const seekTime = audio.duration / 100 * e.target.value
+          audio.currentTime = seekTime 
+          
+        }
+        //khi next : lắng nghe sự kiện next: trong handleEvent
+        nextBtn.onclick = function(){        
+          if(_this.isRandom){
+            _this.playRandomSong()
+          }else{
+            _this.nextSong() 
+          }       
+          audio.play()
+          _this.render()
+          // khi next hoặc prev đến bài nào thì kéo lên trước giao diện màn hình
+          _this.scrollToActiveSong() // gọi khi next
+        }
+        //khi prev
+        prevBtn.onclick = function(){       
+            if(_this.isRandom){
+            _this.playRandomSong()
+          }else{
+            _this.prevSong() 
+          }
+          audio.play()
+          _this.render()
+          // khi next hoặc prev đến bài nào thì kéo lên trước giao diện màn hình
+          _this.scrollToActiveSong() // gọi khi prev
+        }
+        // lắng nghe nút random: bài hát ngẫu nhiên
+        randomBtn.onclick = function(e){
+          _this.setConfig('isRandom', _this.isRandom) // thêm config 
+
+          _this.isRandom = !_this.isRandom
+          randomBtn.classList.toggle('active', _this.isRandom)
+        }
+         //xử lí next song khi audio ended kết thúc
+        audio.onended = function(){
+        
+         if(_this.isRepeat){ 
+          audio.play() 
+         
+         }else{
+          nextBtn.onclick() // nếu không rêpat thì next
+         } 
+        }
+
+        // xử lí nút repeat lặp lại bài hát      
+        repeatBtn.onclick = function(){
+          _this.isRepeat = !_this.isRepeat
+          _this.setConfig('isRepeat', _this.isRepeat)// thêm config
+          repeatBtn.classList.toggle('active',_this.repeatBtn)
+         
+        }
+        //active song: khi ấn vào bài nào thì thay thế bài đó vào, và có màu bên dưới
+       
+        playlist.onclick = function(e){        
+          // xử lí khi click vào song:
+          const songNode = e.target.closest('.song:not(.active)')
+          if(songNode|| e.target.closest('.option')){
+            if(songNode){
+              // do curentIndex là số, nhưng khi get từ element ra để lấy index thì nó là chuỗi nên phải đổi nó về liểu number
+            _this.currentIndex = Number(songNode.dataset.index )
+              _this.loadCurrentSong()
+              _this.render() // active vào song đc click
+              audio.play()
+
+            }
+            // lưu lại  những cái option mk đã check khi phát nhạc
+
+            // xử lí khi click vào song  option
+            
+
+            }
+           }
+          
+      },
+      // khi next hoặc prev đến bài nào thì bài bên dưới sẽ có màu và kéo tới nó
+      scrollToActiveSong: function(){
+        // nếu song nào có active thì dù khi khuất màn hình thì phải cho nó chui vào trong dom, và settimeout khoảng thời gian
+        setTimeout(()=> {
+          $('.song.active').scrollIntoView({
+            behavior:'smooth', // hành vì : trượt mềm mại
+            // block: 'nearest', // kéo đến phạm vi gần nhất trong màn hình và kéo nhẹ
+            behavior: 'smooth',
+            block: 'end',
+           inline: 'nearest',
+          })
+        }, 300)
+      },
+      defineProperties: function(){
+     
+        Object.defineProperty(this, 'currentSong', {
+          get: function(){
+            return this.songs[this.currentIndex]
+          }
+        })
+     
+      },
+      // next bài hát
+      nextSong: function(){
+           // đầu tiên gọi hàm nextvà prve
+          //  const nextBtn = $('.btn-next')
+        
+        // có chỉ mục curentIndex=0 : tức là bài hát đầu tiên
+        this.currentIndex++ // bài hát tăng dần
+        // nếu chạy đến bài hát cuối cùng sẽ phải quay về bài đầu tiên
+        if(this.currentIndex >= this.songs.length){
+          this.currentIndex = 0
+        }
+        this.loadCurrentSong()
+
+      }, 
+      //quay lại bài trước 
+      prevSong:function(){
+        // const prevBtn = $('.btn-prev')
+        this.currentIndex--
+        //nếu quay trở về bài đầu tiên thì nối tiếp bài cuối cùng để chạy tiếp
+        if(this.currentIndex<0){
+          this.currentIndex = this.songs.length -1 // - 1 để trả về phần tử cuối mảng
+
+        }
+        this.loadCurrentSong()
+
+      },
+      // random: bài hát ngẫu nhiên
+      playRandomSong: function(){
+        // random ngẫu nhiên thì phải trừ bài hiện tại ra
+        // dùng do while là ít nhất phải chạy một lần
+        let newIndex
+        do{// random ra một index ngẫu nhiên nhưng không trùng với index hiện tại
+          newIndex= Math.floor(Math.random() * this.songs.length)
+
+        }while(newIndex === this.currentIndex) // loại bỏ trường hợp bằng cái cũ, trùng với bài hát hiện tại thì lặp thêm lần nữa , mà lặp phải khac cái hiện tại
+        // do while là nếu như random vào bài cũ thì có do while lặp một lần
+        this.currentIndex = newIndex
+        this.loadCurrentSong()
+      },
+     
+      
+      
+      loadCurrentSong:function(){
+       
+
+        heading.textContent = this.currentSong.name
+        cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`
+        audio.src = this.currentSong.path
+
+      
+      },
+      star: function(){
+        this.handleEvents()
+        
+        this.defineProperties()
+
+        this.loadCurrentSong() // tải bài hát đầu tiên khi vào ứng dụng
+        this.render()
+        
+        
+      }
+    }
+    app.star()
+  
+  </script>
+</body>
+</html>
